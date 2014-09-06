@@ -1,4 +1,6 @@
 lodash-aitc-mixins
 ==================
 
-A collection of mixing for lo-dash
+A personal collection of mixing for lo-dash (WIP)
+
+_.deepMap(collection, [callback=identity|string], [thisArg])
