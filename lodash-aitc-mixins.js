@@ -20,7 +20,6 @@
  * have the properties of the given object, else `false`.
  *
  * @static
- * @memberOf _
  * @alias
  * @category Collections
  * @param {Array|Object|string} collection The collection to iterate over.
@@ -48,13 +47,13 @@
  */
 _.mixin({'deepMap' : function(collection, callback, thisArg){
     callback = _.createCallback(callback, thisArg, 3);
-    return _.map(collection, function (value, index) {
+    return _.map(collection, function (value, index, collection) {
         // if it's an array, map recursively inside it
         if(_.isArray(value))
-            return _.deepMap(value, callback);
-        // if it's a number, map it to the requested object {x: index, y: value}
+            return _.deepMap(value, callback, thisArg);
+        // if it's an element, run it through the callback
         else
-            return callback(value, index);
+            return callback(value, index, collection);
     });
 }});
 
@@ -75,7 +74,6 @@ _.mixin({'deepMap' : function(collection, callback, thisArg){
  * else `false`.
  *
  * @static
- * @memberOf _
  * @category Objects
  * @param {Object} object The object to iterate over.
  * @param {Function|Object|string} [callback=identity] The function called
@@ -102,9 +100,9 @@ _.mixin({'deepMapValues' : function(collection, callback, thisArg){
     return _.mapValues(collection, function (value, key, collection) {
         // if it's an array or object, map recursively inside it
         if(_.isArray(value) || _.isObject(value)){
-            return _.deepMapValues(value, callback);
+            return _.deepMapValues(value, callback, thisArg);
         }
-        // if it's a number, run it through the callback
+        // if it's an element, run it through the callback
         else{
             return callback(value, key, collection);
         }
@@ -120,7 +118,6 @@ _.mixin({'deepMapValues' : function(collection, callback, thisArg){
  * and invoked with four arguments; (accumulator, value, index|key, collection).
  *
  * @static
- * @memberOf _
  * @alias foldl, inject
  * @category Collections
  * @param {Array|Object|string} collection The collection to iterate over.
@@ -140,9 +137,9 @@ _.mixin({'deepMapValues' : function(collection, callback, thisArg){
  *   return result;
  * }, {});
  * // => { 'a': 3, 'b': 6, 'd': 12, 'e': 25 }
- * NOTE: just like the original _reduce() function, this will only work on end nodes (leafs). This is why element 'c'
- *       doesn't appear in the result. Its elements cannot be computed times 3. In order to handle this, one would need
- *       a second callback that is called when not on a leaf.
+ * NOTE: _.deepReduce() flattens the input object or array. Just like the original _reduce() function, this will only
+ *       work on end nodes (leafs). This is why element 'c' doesn't appear in the result. Its elements cannot be
+ *       computed times 3. In order to handle this, one would need a second callback that is called when not on a leaf.
  */
 _.mixin({'deepReduce':function reduce(collection, callback, accumulator, thisArg) {
     // _.reduce() handles missing accumulator, so make sure it can be passed to it
@@ -159,4 +156,90 @@ _.mixin({'deepReduce':function reduce(collection, callback, accumulator, thisArg
             return callback(accumulator, value, key, collection);
         }
     }, accumulator);
+}});
+
+/**
+ * Reduces two arrays to a single one by concatenating the single elements to a new array. Concatenation can also be
+ * redefined through a callback function. The callback is bound to `thisArg` and invoked with two arguments;
+ * (collectionValue, sourceValue).
+ *
+ * @static
+ * @category Collections
+ * @param {Array} collection The destination array.
+ * @param {Array} [source] The source array.
+ * @param {Function} [callback] The function to customize merging elements.
+ * @param {*} [thisArg] The `this` binding of `callback`.
+ * @returns {Array} Returns the destination array.
+ * @example
+ *
+ * _.mergeArray([1, 2, 3], [2, 4, 6], function(v1, v2) { return [].concat(v1).concat(v2).concat(v1+v2); });
+ * // => [[1, 2, 3], [2, 4, 6], [3, 6, 9]]
+ */
+_.mixin({'mergeArray' : function(collection, source, callback, thisArg){
+    callback = callback || function(collectionValue, sourceValue){
+        return [].concat(collectionValue).concat(sourceValue);
+    };
+    callback = _.createCallback(callback, thisArg, 2);
+    return _.map(collection, function(item, index){
+        return collection[index] = callback(collection[index], source[index]);
+    });
+}});
+
+/**
+ * Reduces two arrays to a single one by concatenating the single elements to a new array and recursively descending
+ * into array children. Concatenation can also be redefined through a callback function. The callback is bound to
+ * `thisArg` and invoked with two arguments; (collectionValue, sourceValue).
+ *
+ * @static
+ * @category Collections
+ * @param {Array} collection The destination array.
+ * @param {Array} [source] The source array.
+ * @param {Function} [callback] The function to customize merging elements.
+ * @param {*} [thisArg] The `this` binding of `callback`.
+ * @returns {Array} Returns the destination array.
+ * @example
+ *
+ * _.mergeArray([1, 2, [3, 4, 5]], [2, 4, [6, 8, 10]], function(v1, v2) { return [].concat(v1).concat(v2).concat(v1+v2); });
+ * // => [[1, 2, 3], [2, 4, 6], [[3, 6, 9], [4, 8, 12], [5, 10, 15]]]
+ */
+_.mixin({'deepMergeArray' : function(collection, source, callback, thisArg){
+    callback = callback || function(collectionValue, sourceValue){
+        return [].concat(collectionValue).concat(sourceValue);
+    };
+    callback = _.createCallback(callback, thisArg, 2);
+    return _.map(collection, function(item, index){
+        // if it's an array, map recursively inside it
+        if(_.isArray(item))
+            return _.deepMergeArray(collection[index], source[index], callback, thisArg);
+        // if it's an element, run it through the callback
+        else
+            return callback(collection[index], source[index]);
+    });
+}});
+
+/**
+ * Iterates over elements of a collection, executing the callback for each element. For array or object elements, it
+ * descends into the array or object and executes the callback for every leaf element. The callback is bound to thisArg
+ * and invoked with three arguments; (value, index|key, collection). Callbacks may exit iteration early by explicitly
+ * returning false. WARNING: This will only exit the current nesting level.
+ *
+ * Note: As with other "Collections" methods, objects with a length property are iterated like arrays. To avoid this
+ * behavior _.forIn or _.forOwn may be used for object iteration.
+ * @example
+ * console.log(_([[1, 2], [3, 4], [5, 6]]).deepForEach(function(num) { console.log(num); }).join(','));
+ * // => logs each number and returns '1,2,3,4,5,6'
+ *
+ * _.deepForEach([{ 'one': [1, 2], 'two': [3, 4] }, { 'three': [5, 6] }], function(num) { console.log(num); });
+ * // => logs each number and returns the object (property order is not guaranteed across environments)
+ */
+_.mixin({'deepForEach' : function(collection, callback, thisArg){
+    callback = _.createCallback(callback, thisArg, 3);
+    return _.forEach(collection, function(value, index, collection){
+        // if it's an array, map recursively inside it
+        if(_.isArray(value))
+            return _.deepForEach(value, callback, thisArg);
+        // if it's an element, run it through the callback
+        else
+            return callback(value, index, collection);
+    });
 }});
