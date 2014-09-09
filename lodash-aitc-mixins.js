@@ -210,10 +210,10 @@ _.mixin({'deepMergeArray' : function(collection, source, callback, thisArg){
     return _.map(collection, function(item, index){
         // if it's an array, map recursively inside it
         if(_.isArray(item))
-            return _.deepMergeArray(collection[index], source[index], callback, thisArg);
-        // if it's an element, run it through the callback
+            return _.deepMergeArray(collection[index], (source && source[index]) || undefined, callback, thisArg);
+        // if it's an element, run the callback
         else
-            return callback(collection[index], source[index]);
+            return callback(collection[index], (source && source[index]) || undefined);
     });
 }});
 
