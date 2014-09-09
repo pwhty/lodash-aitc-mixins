@@ -202,7 +202,8 @@ _.mixin({'mergeArray' : function(collection, source, callback, thisArg){
  * _.mergeArray([1, 2, [3, 4, 5]], [2, 4, [6, 8, 10]], function(v1, v2) { return [].concat(v1).concat(v2).concat(v1+v2); });
  * // => [[1, 2, 3], [2, 4, 6], [[3, 6, 9], [4, 8, 12], [5, 10, 15]]]
  */
-_.mixin({'deepMergeArray' : function(collection, source, callback, thisArg){
+_.mixin({'deepMergeArray' : function(collection, source, callback, thisArg, level){
+    level = level || 0;
     callback = callback || function(collectionValue, sourceValue){
         return [].concat(collectionValue).concat(sourceValue);
     };
@@ -210,10 +211,10 @@ _.mixin({'deepMergeArray' : function(collection, source, callback, thisArg){
     return _.map(collection, function(item, index){
         // if it's an array, map recursively inside it
         if(_.isArray(item))
-            return _.deepMergeArray(collection[index], (source && source[index]) || undefined, callback, thisArg);
+            return _.deepMergeArray(collection[index], source[index], callback, thisArg, level + 1);
         // if it's an element, run the callback
         else
-            return callback(collection[index], (source && source[index]) || undefined);
+            return callback(collection[index], source[index], level);
     });
 }});
 
@@ -232,14 +233,16 @@ _.mixin({'deepMergeArray' : function(collection, source, callback, thisArg){
  * _.deepForEach([{ 'one': [1, 2], 'two': [3, 4] }, { 'three': [5, 6] }], function(num) { console.log(num); });
  * // => logs each number and returns the object (property order is not guaranteed across environments)
  */
-_.mixin({'deepForEach' : function(collection, callback, thisArg){
-    callback = _.createCallback(callback, thisArg, 3);
+_.mixin({'deepForEach' : function(collection, callback, thisArg, level){
+    level = level || 0;
+    callback = _.createCallback(callback, thisArg, 4);
+
     return _.forEach(collection, function(value, index, collection){
         // if it's an array, map recursively inside it
         if(_.isArray(value))
-            return _.deepForEach(value, callback, thisArg);
+            return _.deepForEach(value, callback, thisArg, level + 1);
         // if it's an element, run it through the callback
         else
-            return callback(value, index, collection);
+            return callback(value, index, level, collection);
     });
 }});
