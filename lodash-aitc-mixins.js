@@ -253,6 +253,7 @@ _.mixin({'deepForEach' : function(collection, callback, thisArg, level){
  * Returns an array representing the index path to the first matching element in the array.
  */
 _.mixin({'deepFindIndex': function(array, callback, thisArg, level) {
+
     level = level || 0;
     callback = _.createCallback(callback, thisArg, 4);
 
@@ -261,7 +262,7 @@ _.mixin({'deepFindIndex': function(array, callback, thisArg, level) {
         if (accumulator.length != 0)
             return accumulator;
         // if it's an array or object, reduce recursively inside it
-        if(_.isArray(value) || _.isObject(value)){
+        if(_.isArray(value)){
             // get the result of the nested, recursive findIndex
             var res = _.deepFindIndex(value, callback, thisArg, level + 1);
             // if the searched element was found inside the current element, prepend current index to result array
