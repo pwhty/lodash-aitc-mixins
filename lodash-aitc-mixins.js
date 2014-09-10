@@ -253,7 +253,6 @@ _.mixin({'deepForEach' : function(collection, callback, thisArg, level){
  * Returns an array representing the index path to the first matching element in the array.
  */
 _.mixin({'deepFindIndex': function(array, callback, thisArg, level) {
-
     level = level || 0;
     callback = _.createCallback(callback, thisArg, 4);
 
