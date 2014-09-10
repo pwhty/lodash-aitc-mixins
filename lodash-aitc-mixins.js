@@ -251,6 +251,29 @@ _.mixin({'deepForEach' : function(collection, callback, thisArg, level){
 
 /**
  * Returns an array representing the index path to the first matching element in the array.
+ *
+ * @example
+ *
+ * console.log(_.deepFindIndex(
+ * [1],
+ * function(item){ return item == 1; }));
+ *  // => [0]
+ * console.log(_.deepFindIndex(
+ * [1, [2, [3, [4, 5, [6, 7], [[[8]]]]]]],
+ * function(item){ return item == 2; }));
+ * // => [1, 0]
+ * console.log(_.deepFindIndex(
+ * [1, [2, [3, [4, 5, [6, 7], [[[8]]]]]]],
+ * function(item){ return item == 8; }));
+ * // => [1, 1, 1, 3, 0, 0, 0]
+ * console.log(_.deepFindIndex(
+ * [[1], [2], [1]],
+ * function(item, index, level){ return level == 1; }));
+ * // => [0, 0]
+ * console.log(_.deepFindIndex(
+ * [[1], [1,2,1], [1]],
+ * function(item, index, level){ return level == 1 && index == 0; }));
+ * // => [0, 0]
  */
 _.mixin({'deepFindIndex': function(array, callback, thisArg, level) {
     level = level || 0;
@@ -277,4 +300,31 @@ _.mixin({'deepFindIndex': function(array, callback, thisArg, level) {
                 return [];
         }
     }, []);
+}});
+
+/**
+ * Returns an array representing the index path to the value element in array.
+ *
+ * @example
+ * console.log(_.deepIndexOf(
+ * [{x:1, y:1}, {x:2, y:2}, {x:3, y:3}], {x:1, y:1}));
+ *  // => []
+ * var obj = {x:1, y:1}
+ * console.log(_.deepIndexOf(
+ * [obj, {x:2, y:2}, {x:3, y:3}], obj));
+ * // => [0, 0]
+ * console.log(_.deepIndexOf(
+ * [1], 1));
+ * // => [0]
+ * console.log(_.deepIndexOf(
+ * [1, [2, [3, [4, 5, [6, 7], [[[8]]]]]]], 2));
+ * // => [1, 0]
+ * console.log(_.deepIndexOf(
+ * [1, [2, [3, [4, 5, [6, 7], [[[8]]]]]]], 8));
+ * // => [1, 1, 1, 3, 0, 0, 0]
+ */
+_.mixin({'deepIndexOf': function(array, value) {
+    return _.deepFindIndex(array, function(item){
+        return item === value;
+    });
 }});
