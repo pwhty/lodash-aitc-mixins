@@ -303,6 +303,37 @@ _.mixin({'deepFindIndex': function(array, callback, thisArg, level) {
 }});
 
 /**
+ * Returns the element at the nested index identified by the index array. If the given index path doesn't exist, it
+ * returns undefined. This function best works with deepFindIndex
+ *
+ * @example
+ *
+ * console.log(_.atIndex([1], [0]));
+ * // => 1
+ *
+ * console.log(_.atIndex([1], [2]));
+ * // => undefined
+ *
+ * console.log(_.atIndex([1, [2, [3, [4, 5, [6, 7], [[[8]]]]]]], [1, 0]));
+ * // => 2
+ *
+ * console.log(_.atIndex([1, [2, [3, [4, 5, [6, 7], [[[8]]]]]]], [1, 1, 1, 3, 0, 0, 0]));
+ * // => 8
+ *
+ * console.log(_.atIndex([[1], [2], [1]], [0, 0]));
+ * // => 1
+ *
+ * console.log(_.atIndex([[1], [1,2,1], [1]], [0, 0]));
+ * // => 1
+ */
+_.mixin({'atIndex': function(array, index) {
+    index = [].concat(index);
+    var result = array;
+    _.each(index, function(item){ result = result[item]; });
+    return result;
+}});
+
+/**
  * Returns an array representing the index path to the value element in array.
  *
  * @example
