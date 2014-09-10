@@ -248,3 +248,33 @@ _.mixin({'deepForEach' : function(collection, callback, thisArg, level){
             return callback(value, index, level, collection);
     });
 }});
+
+/**
+ * Returns an array representing the index path to the first matching element in the array.
+ */
+_.mixin({'deepFindIndex': function(array, callback, thisArg, level) {
+    level = level || 0;
+    callback = _.createCallback(callback, thisArg, 4);
+
+    return _.reduce(array, function (accumulator, value, index, array) {
+        // if we already found an index, skip searching
+        if (accumulator.length != 0)
+            return accumulator;
+        // if it's an array or object, reduce recursively inside it
+        if(_.isArray(value) || _.isObject(value)){
+            // get the result of the nested, recursive findIndex
+            var res = _.deepFindIndex(value, callback, thisArg, level + 1);
+            // if the searched element was found inside the current element, prepend current index to result array
+            if(res.length)
+                return [].concat(index).concat(res);
+            else return [];
+        }
+        // if it's an element, run it through the callback
+        else{
+            if(callback(value, index, level, array) && accumulator.length == 0)
+                return [].concat(index);
+            else
+                return [];
+        }
+    }, []);
+}});
