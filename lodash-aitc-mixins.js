@@ -329,7 +329,7 @@ _.mixin({'deepFindIndex': function(array, callback, thisArg, level) {
 _.mixin({'atIndex': function(array, index) {
     index = [].concat(index);
     var result = array;
-    _.each(index, function(item){ result = result[item]; });
+    _.each(index, function(item){ result = (result && result[item]) || undefined; });
     return result;
 }});
 
